@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorias - 1er Foro Neo Seguridad Vial</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Colores Institucionales */
+        .neo-blue-bg {
+            background-color: #0f172a; 
+        }
+        .neo-orange-text {
+            color: #f97316;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-color: #fdba74;
+        }
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: #f97316;
+        }
+        .btn-top50 {
+            background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800">
+
+    <!-- Encabezado de Marca (Logo Solo en Fondo Blanco) -->
+    <header class="bg-white py-6 shadow-sm border-b border-gray-100 relative z-50">
+        <div class="container mx-auto px-4 flex justify-center items-center">
+            <!-- Logo centrado sin nada al lado -->
+            <img src="https://imgur.com/ju3sYXD.png" alt="Logo Institucional" class="h-24 md:h-28 object-contain">
+        </div>
+    </header>
+
+    <!-- Barra de Navegación (Separada del Logo) -->
+    <nav class="neo-blue-bg text-white shadow-md sticky top-0 z-40 border-b-4 border-orange-500">
+        <div class="container mx-auto px-4 py-3 flex justify-center md:justify-between items-center">
+            <div class="hidden md:block text-sm font-light text-slate-300">
+                Memorias del Evento
+            </div>
+            <div class="flex space-x-8 text-sm font-medium items-center">
+                <a href="https://neoseguridadvial.github.io/1rforo/" class="hover:text-orange-400 transition flex items-center">
+                    <i class="fas fa-calendar-alt mr-2"></i> Agenda
+                </a>
+                <span class="text-orange-500 bg-white/10 px-4 py-1.5 rounded-full border border-orange-500/30 flex items-center cursor-default">
+                    <i class="fas fa-folder-open mr-2"></i> Memorias
+                </span>
+                <a href="https://neoseguridadvial.github.io/1rforo/top50.html" class="hover:text-orange-400 transition flex items-center">
+                    <i class="fas fa-list-ol mr-2"></i> Top 50
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero / Título del Evento -->
+    <div class="bg-slate-50 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-12 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-orange-100 text-orange-700 text-xs font-bold tracking-wider uppercase mb-4">
+                Evento Realizado
+            </span>
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
+                1er Foro Neo Seguridad Vial
+            </h1>
+            
+            <!-- Fecha y Detalles -->
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-8 text-gray-500 text-lg mt-2">
+                <div class="flex items-center">
+                    <i class="far fa-calendar-check text-orange-500 mr-2"></i>
+                    <span class="font-medium">24 de Noviembre</span>
+                </div>
+                <div class="hidden md:block text-gray-300">|</div>
+                <div class="flex items-center">
+                    <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                    <span>Colombia</span>
+                </div>
+            </div>
+
+            <!-- Buscador -->
+            <div class="max-w-2xl mx-auto relative mt-10">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-orange-400 text-lg"></i>
+                </div>
+                <input type="text" id="searchInput" placeholder="Buscar ponente, tema o ciudad..." 
+                    class="block w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-lg transition text-lg">
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow container mx-auto px-4 py-12 space-y-16">
+
+        <!-- SECCIÓN 1: TOP 10 PONENCIAS -->
+        <section id="section-top10">
+            <div class="flex items-center mb-8 border-b border-gray-200 pb-4">
+                <div class="bg-orange-100 p-3 rounded-lg mr-4 text-orange-600">
+                    <i class="fas fa-crown text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">TOP 10 Ponencias</h2>
+                    <p class="text-sm text-gray-500">Los proyectos ganadores y más destacados.</p>
+                </div>
+            </div>
+            <div id="top10Grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- JS inyectará contenido aquí -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: DESTACADOS TOP 50 -->
+        <section id="section-top50">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 mb-8 flex flex-col md:flex-row items-center justify-between shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5">
+                    <i class="fas fa-award text-9xl"></i>
+                </div>
+                <div class="flex items-center mb-4 md:mb-0 relative z-10">
+                    <div class="bg-slate-100 p-3 rounded-lg mr-4 text-slate-600">
+                        <i class="fas fa-star text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Destacados TOP 50</h2>
+                        <p class="text-sm text-gray-500">Más expertos del ranking oficial.</p>
+                    </div>
+                </div>
+                <a href="https://neoseguridadvial.github.io/1rforo/top50.html" target="_blank" class="relative z-10 btn-top50 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition transform hover:scale-105 flex items-center">
+                    <span>Ver Ranking Completo</span>
+                    <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                </a>
+            </div>
+            <div id="top50Grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- JS inyectará contenido aquí -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: DOCUMENTOS GENERALES -->
+        <section id="section-general">
+            <div class="flex items-center mb-8 border-b border-gray-200 pb-4">
+                <div class="bg-blue-50 p-3 rounded-lg mr-4 text-blue-600">
+                    <i class="fas fa-folder-open text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Documentación Institucional</h2>
+                    <p class="text-sm text-gray-500">Paneles, apertura y recursos oficiales.</p>
+                </div>
+            </div>
+            <div id="generalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- JS inyectará contenido aquí -->
+            </div>
+        </section>
+
+        <!-- Mensaje No Resultados -->
+        <div id="noResults" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100 mx-auto max-w-lg">
+            <i class="fas fa-search text-gray-300 text-4xl mb-4"></i>
+            <h4 class="text-xl font-bold text-gray-800 mb-2">No encontramos resultados</h4>
+            <p class="text-gray-500">Intenta buscar por el nombre del ponente o ciudad.</p>
+        </div>
+
+    </main>
+
+    <!-- Footer Simple -->
+    <footer class="bg-slate-900 text-gray-400 py-10 border-t-4 border-orange-500">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm font-medium text-slate-500">
+                &copy; 2025 <span class="text-slate-400">Neo Seguridad Vial</span>. Todos los derechos reservados.
+            </p>
+        </div>
+    </footer>
+
+    <!-- LOGICA JAVASCRIPT -->
+    <script>
+        const resources = [
+            // ==========================================
+            // TOP 10 (Confirmado)
+            // ==========================================
+            { 
+                category: 'top10', 
+                rank: 1,
+                name: "Cherlon Didieson Perea Asprilla",
+                project: "Conduce con sentido colectivo, Armenia – Quindío",
+                video: "https://drive.google.com/open?id=13pyS9vzNyWBYrgI4kTCHs049yBWuaZGV&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=17-hD-vxYrLbrJQBtIYvfGfBt9XXHrPo6&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 2,
+                name: "Claudia Eugenia Arroyave Salazar",
+                project: "Guardianes del Tránsito y la Movilidad, Anserma – Caldas",
+                video: null,
+                ppt: null
+            },
+            { 
+                category: 'top10', 
+                rank: 3,
+                name: "Daniel Pérez Rodríguez",
+                project: "Infraestructura vial para la micromovilidad, Bogotá D.C.",
+                video: null, 
+                ppt: "https://drive.google.com/open?id=1ztB1Nuu2KZk121jgxo1VBNEGb1SBAb25&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 4,
+                name: "Giovani Andrey López Jiménez",
+                project: "YO GÉNERO CAMBIO, Cali – Valle del Cauca",
+                video: "https://drive.google.com/open?id=1iJmt4hT7dF0bIReS2hlbyZlpe6pRz0mA&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1z_arfliJ0phVkXhJnRhduOoc2Ff4LBET&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 5,
+                name: "Ingri Dayana Otálora Hernández",
+                project: "Con Ellas en la Vía, Fusagasugá – Cundinamarca",
+                video: "https://drive.google.com/open?id=1eEm-Tm_tP7QeLTo_bbGCQQnCmZe7dZju&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1him7kX_q5ilzlN8XG-4gXzyUUIUxHwez&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 6,
+                name: "José Richard Blanco Vargas",
+                project: "SUSSI (Sector Urbano Seguro Sin Incidentes), Medellín",
+                video: "https://drive.google.com/open?id=1vvTOUzYdQzvP8ArwJb84c7JerpS8PBbp&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1iXu9JLi7Tp40bK1BcB95B8Lv6M2ytcQX&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 7,
+                name: "Lina Sophia Cancela Corredor",
+                project: "Investigación-acción participativa, Bucaramanga",
+                video: "https://drive.google.com/open?id=1czrwE3G2OFwCJlj1vEUJvG9dvZEb-oqx&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=18IxFKbc03wAYFQ_dHwXenk7CUb4Vk8vp&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 8,
+                name: "Martha Cecilia Rincón Martínez",
+                project: "Niños, niñas y adolescentes, futuro de Cartagena",
+                video: "https://drive.google.com/open?id=1mXQTf1MMQaBzsNYXzVVDAwrrY8Vi-n7R&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1RpnGwyCbqSlgTVvOKpECTul2Fp40nqxt&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 9,
+                name: "Martha Yaneth Mantilla Sánchez",
+                project: "Movilidad inteligente, sostenible y segura, Bucaramanga",
+                video: "https://drive.google.com/open?id=140QnJXLcK6vR0vLPaHEo_ebf7P89IcWL&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1xI2a77FNWIREf7OZ6f0byXgFYqXMX817&usp=drive_copy" 
+            },
+            { 
+                category: 'top10', 
+                rank: 10,
+                name: "Yoli Beatriz González Estacio",
+                project: "Juventud viva, calles seguras, Cali – Valle del Cauca",
+                video: "https://drive.google.com/open?id=1iNGHOqCObHw5swBB0jbRgsGsYAVHybsi&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1FJZD5-lyrRCZZk4wnrQQkpICRb3gMWk8&usp=drive_copy" 
+            },
+
+            // ==========================================
+            // DESTACADOS TOP 50 (Otros ponentes)
+            // ==========================================
+            { 
+                category: 'top50', 
+                name: "Luis Octavio Solarte", 
+                video: "https://drive.google.com/open?id=1Zi8OIXS2uzGXORQ2KZCX3a4Jqb390c9U&usp=drive_copy", 
+                ppt: "https://drive.google.com/open?id=1Os_QND53mMl7_jD6xsj7w_wqRKJiF-1s&usp=drive_copy" 
+            },
+            { 
+                category: 'top50', 
+                name: "Sandra Patricia Caicedo Calderón", 
+                video: "https://drive.google.com/open?id=1kdNXrMvhq8YuQwEqmmVd_qFi1oEANMve&usp=drive_copy", 
+                ppt: null 
+            },
+            { 
+                category: 'top50', 
+                name: "Lucero Robayo", 
+                video: "https://drive.google.com/open?id=1VY0ygfT7Fg9ohu9PeD_VAsVNeSF4nLKb&usp=drive_copy", 
+                ppt: null 
+            },
+            { 
+                category: 'top50', 
+                name: "Harold De Jesus Alvarez", 
+                video: "https://drive.google.com/open?id=13B0qi3YSkbMmT7vD4H3aBJItdblflTmf&usp=drive_copy", 
+                ppt: null 
+            },
+            { 
+                category: 'top50', 
+                name: "Yenny Larrota", 
+                video: "https://drive.google.com/open?id=1_8-MPElGOoU7TMZKFMcTg5a3U_rRRaMo&usp=drive_copy", 
+                ppt: null 
+            },
+
+            // ==========================================
+            // INSTITUCIONAL
+            // ==========================================
+            {
+                category: 'general',
+                name: "Presentación Apertura (V2)",
+                video: null,
+                ppt: "https://drive.google.com/open?id=1_vBIxBqbtwaYDwCzekJOEDAHvpUceKdc&usp=drive_copy"
+            },
+            {
+                category: 'general',
+                name: "Liderazgo y Sistema Seguro - DVP",
+                video: null,
+                ppt: "https://drive.google.com/open?id=1VID_PkkqqwZsUtWn77z4_5z40Qh6-yvx&usp=drive_copy"
+            },
+            {
+                category: 'general',
+                name: "Panel de Liderazgo - SIMIT",
+                video: null,
+                ppt: "https://drive.google.com/open?id=1mm6No6baEPhyyRjhC3-K9H7mLUhGww9V&usp=drive_copy"
+            },
+            {
+                category: 'general',
+                name: "Presentación Ayda Lucy Ospina",
+                video: null,
+                ppt: "https://drive.google.com/open?id=1Ah7XGyU7WSaY2jzK91tS55D7Rmoc9b91&usp=drive_copy"
+            },
+            {
+                category: 'general',
+                name: "Encuentro de Mujeres",
+                video: null,
+                ppt: "https://drive.google.com/open?id=14kVKu4Ett5AwOwFRQiwKWCHZLNcGD4Lk&usp=drive_copy"
+            }
+        ];
+
+        // --- MANEJO DEL DOM ---
+        const containers = {
+            top10: document.getElementById('top10Grid'),
+            top50: document.getElementById('top50Grid'),
+            general: document.getElementById('generalGrid')
+        };
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+        const sectionsDOM = {
+            top10: document.getElementById('section-top10'),
+            top50: document.getElementById('section-top50'),
+            general: document.getElementById('section-general')
+        };
+
+        function createCard(item) {
+            let buttonsHtml = '';
+
+            // Video
+            if (item.video) {
+                buttonsHtml += `
+                    <a href="${item.video}" target="_blank" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center transition hover:scale-105 mb-2 sm:mb-0 sm:mr-2 shadow-sm group">
+                        <i class="fas fa-play-circle mr-2 text-orange-400 group-hover:text-white transition"></i> Video
+                    </a>
+                `;
+            }
+
+            // PPT
+            if (item.ppt) {
+                const isPdf = item.name.toLowerCase().includes('pdf') || (item.ppt && item.ppt.toLowerCase().includes('pdf'));
+                const icon = isPdf ? 'fa-file-pdf' : 'fa-file-powerpoint';
+                const label = isPdf ? 'Ver PDF' : 'Ver PPT';
+                
+                buttonsHtml += `
+                    <a href="${item.ppt}" target="_blank" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center transition hover:scale-105 shadow-sm hover:shadow-md">
+                        <i class="fas ${icon} mr-2"></i> ${label}
+                    </a>
+                `;
+            } else if (!item.video) {
+                 buttonsHtml += `<span class="text-xs text-gray-400 italic text-center w-full py-2">Material próximamente</span>`;
+            }
+
+            let headerIcon = 'fa-user-tie';
+            let headerColor = 'text-slate-500 bg-slate-100';
+            let badgeText = 'Ponencia';
+            let rankBadge = '';
+            
+            // Descripción del proyecto
+            let projectInfo = '';
+            if (item.project) {
+                projectInfo = `<p class="text-sm text-gray-500 mb-3 italic leading-relaxed border-l-2 border-orange-200 pl-3">${item.project}</p>`;
+            } else {
+                projectInfo = `<div class="w-10 h-1 bg-orange-200 rounded mb-4 mt-2 group-hover:w-20 transition-all duration-500"></div>`;
+            }
+
+            if (item.category === 'top10') {
+                headerIcon = 'fa-crown';
+                headerColor = 'text-orange-600 bg-orange-100'; 
+                rankBadge = `<div class="absolute -top-3 -right-3 w-8 h-8 bg-orange-500 text-white font-bold rounded-full flex items-center justify-center shadow-md border-2 border-white z-10 text-sm">${item.rank}</div>`;
+                badgeText = 'Top 10';
+            } else if (item.category === 'top50') {
+                headerIcon = 'fa-medal';
+                headerColor = 'text-blue-500 bg-blue-50';
+                badgeText = 'Destacado';
+            } else if (item.category === 'general') {
+                headerIcon = 'fa-folder-open';
+                headerColor = 'text-gray-600 bg-gray-100';
+                badgeText = 'Institucional';
+            }
+
+            return `
+                <div class="relative bg-white rounded-2xl border border-gray-100 p-6 card-hover transition duration-300 flex flex-col h-full shadow-sm hover:shadow-lg hover:border-orange-200 group">
+                    ${rankBadge}
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-3 rounded-xl ${headerColor} transition group-hover:scale-110">
+                                <i class="fas ${headerIcon} text-xl"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 border border-gray-200 px-2 py-1 rounded-md">
+                                ${badgeText}
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2 leading-snug group-hover:text-orange-600 transition">${item.name}</h3>
+                        ${projectInfo}
+                    </div>
+                    <div class="flex flex-col sm:flex-row pt-4 border-t border-gray-50 mt-2 gap-2">
+                        ${buttonsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function render(filterText = '') {
+            containers.top10.innerHTML = '';
+            containers.top50.innerHTML = '';
+            containers.general.innerHTML = '';
+            let totalMatches = 0;
+            const filterLower = filterText.toLowerCase();
+
+            resources.forEach(item => {
+                const searchString = `${item.name} ${item.project || ''}`.toLowerCase();
+                if (searchString.includes(filterLower)) {
+                    const cardHTML = createCard(item);
+                    containers[item.category].innerHTML += cardHTML;
+                    totalMatches++;
+                }
+            });
+
+            Object.keys(containers).forEach(key => {
+                const container = containers[key];
+                const section = sectionsDOM[key];
+                if (container.children.length === 0) {
+                    section.classList.add('hidden');
+                } else {
+                    section.classList.remove('hidden');
+                }
+            });
+
+            if (totalMatches === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
+
+        render();
+        searchInput.addEventListener('input', (e) => render(e.target.value));
+    </script>
+</body>
+</html>

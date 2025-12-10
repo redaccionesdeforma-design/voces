@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda 1er Foro Nacional - ANSV</title>
+    
+    <!-- Tailwind CSS (Estilos) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración de Animaciones Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    keyframes: {
+                        'fade-in-up': {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        'pulse-slow': {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.5' },
+                        },
+                        'glow': {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(249, 115, 22, 0.5), 0 0 30px rgba(249, 115, 22, 0.3)' },
+                            '50%': { boxShadow: '0 0 25px rgba(249, 115, 22, 0.8), 0 0 50px rgba(249, 115, 22, 0.5)' },
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fade-in-up 0.5s ease-out',
+                        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Babel (Traductor de React para el navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Estilos para efectos 3D de las tarjetas -->
+    <style>
+        html { scroll-behavior: smooth; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        
+        /* USAMOS !important PARA FORZAR EL GIRO SOBRE TAILWIND */
+        .rotate-y-180 { transform: rotateY(180deg) !important; }
+        .preserve-3d { transform-style: preserve-3d; }
+        
+        /* Ocultar scrollbar en galería de fotos */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Estilo personalizado para el reproductor de audio */
+        audio {
+            height: 32px;
+            width: 100%;
+            border-radius: 8px;
+        }
+        audio::-webkit-media-controls-panel {
+            background-color: #f1f5f9;
+        }
+        
+        /* Animación de onda para dictado */
+        .dictating-wave {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            animation: wave 1.2s linear infinite;
+            margin-left: 2px;
+        }
+        .dictating-wave:nth-child(2) { animation-delay: -1.1s; }
+        .dictating-wave:nth-child(3) { animation-delay: -1.0s; }
+        
+        @keyframes wave {
+            0%, 60%, 100% { transform: initial; }
+            30% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100" id="top">
+    
+    <div id="root"></div>
+
+    <!-- Tu Aplicación React -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        
+        // Importamos Lucide Icons
+        import { 
+          Clock, User, RotateCcw, Pencil, Download, MapPin, Calendar, Mic, Users, 
+          Coffee, Award, MessageSquare, CheckCircle, Star, Layout, Heart, Camera, 
+          Trash2, PlusCircle, Briefcase, Phone, Save, Info, AlertTriangle, Link, ExternalLink,
+          Radio, ArrowUp, Target, MonitorPlay, Zap, Square, Play, Volume2, MicOff, FileCode,
+          GitMerge, ClipboardList, BarChart, Presentation, MousePointerClick, FileText
+        } from 'https://esm.sh/lucide-react@0.263.1';
+
+        // --- DATA SOURCE ---
+        const mainAgendaData = [
+          { id: 'm0', time: '07:30 - 08:00', duration: '30 min', title: 'Registro y acreditación', moderator: 'Equipo logístico REDIPI', description: 'Registro de participantes presenciales y entrega de escarapelas con QR.', icon: 'check' },
+          { id: 'm1', time: '08:00 - 08:10', duration: '10 min', title: 'Instalación oficial', moderator: 'Representante ANSV / Maestro de ceremonias', description: 'Acto protocolario, himnos y palabras de apertura.', icon: 'mic' },
+          { id: 'm2', time: '08:10 - 08:50', duration: '40 min', title: 'Innovación, tecnología y liderazgo empresarial', moderator: 'Daniel Villaveces', description: 'Vehículos seguros, infraestructura inteligente y liderazgo en gestión.', icon: 'lightbulb' },
+          { id: 'm3', time: '08:50 - 09:40', duration: '50 min', title: 'Socialización de iniciativas (bloque 1)', moderator: 'Líderes/as ponentes', description: 'Presentación de proyectos ganadores (5 presentaciones).', icon: 'users' },
+          { id: 'm4', time: '09:40 - 10:00', duration: '20 min', title: 'Pausa activa y networking', moderator: 'Equipo logístico', description: 'Disparador de conversación: logros y desafíos.', icon: 'coffee' },
+          { id: 'm5', time: '10:00 - 10:40', duration: '40 min', title: 'Liderazgo comunitario y cultural', moderator: 'Sandra Milena Tapias', description: 'Liderazgo de la sociedad civil, víctimas y transformación cultural.', icon: 'heart' },
+          { id: 'm6', time: '10:40 - 11:30', duration: '50 min', title: 'Socialización de iniciativas (bloque 2)', moderator: 'Líderes/as ponentes', description: 'Continuación de presentación de proyectos ganadores.', icon: 'users' },
+          { id: 'm7', time: '11:30 - 12:10', duration: '50 min', title: 'Taller: Fortalecimiento de la Red', moderator: 'Facilitador/a REDIPI', description: 'Dinámica "Conectemos nuestros liderazgos" y compromisos de Red.', icon: 'puzzle' },
+          { id: 'm8', time: '12:10 - 13:40', duration: '90 min', title: 'Almuerzo libre', moderator: '-', description: 'Tiempo libre para alimentación.', icon: 'coffee' },
+          { id: 'm9', time: '13:40 - 14:20', duration: '40 min', title: 'Liderazgo gubernamental y gobernanza', moderator: 'Ayda Lucy Ospina', description: 'Estrategia Nacional y coordinación intersectorial.', icon: 'building' },
+          { id: 'm10', time: '14:20 - 14:40', duration: '20 min', title: 'Pausa café y networking libre', moderator: 'Equipo logístico', description: 'Espacio distendido para interacción espontánea.', icon: 'coffee' },
+          { id: 'm11', time: '14:40 - 15:40', duration: '60 min', title: 'Panel: Liderazgos transformadores', moderator: 'Rep. ANSV (Modera) / 3 Expertos', description: 'Conversatorio sobre cualidades del líder y experiencias de éxito.', icon: 'mic' },
+          { 
+              id: 'm12', 
+              time: '15:40 - 16:15', 
+              duration: '35 min', 
+              title: 'Socialización de iniciativas (bloque 3)', 
+              moderator: 'Líderes/as ponentes', 
+              description: 'Proyectos con reconocimiento especial.', 
+              links: [
+                  { url: 'https://neoseguridadvial.github.io/1rforo/top50.html', text: 'Ver propuestas presentadas en los eventos de cierre' }
+              ],
+              icon: 'star' 
+          },
+          { id: 'm13', time: '16:15 - 16:45', duration: '30 min', title: 'Entrega de certificados', moderator: 'Rep. ANSV / Maestro de ceremonias', description: 'Reconocimiento al Top 10 y entrega de certificados.', icon: 'award' },
+          { id: 'm14', time: '16:45 - 17:00', duration: '15 min', title: 'Cierre del evento', moderator: 'Rep. ANSV / Facilitador REDIPI', description: 'Conclusiones y resultados del proceso formativo.', icon: 'flag' }
+        ];
+
+        const womenAgendaData = [
+          { id: 'w1', time: '10:00 - 10:05', duration: '5 min', title: 'Bienvenida encuentro mujeres', moderator: 'Facilitadora REDIPI', description: 'Apertura guiada y conexión a sala digital.', icon: 'heart' },
+          { 
+              id: 'w2', 
+              time: '10:05 - 10:25', 
+              duration: '20 min', 
+              title: 'Mapa digital: Modos de movilidad', 
+              moderator: 'Facilitadora REDIPI', 
+              description: '¡Participa en nuestro tablero interactivo en Canva!\n\nINSTRUCCIONES:\n1. Amplía la imagen (zoom) para ver mejor.\n2. Arrastra tus íconos a los 3 espacios: Modos de movilidad, Rol de cuidado y Rol activo/pasivo.\n\nConsulta el estudio ONSV para datos clave.',
+              links: [
+                { url: 'https://www.canva.com/design/DAG5dzJEFFM/PS-5XS3GFKVYWRL8a2hSmA/edit?utm_content=DAG5dzJEFFM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', text: 'Ir al taller en Canva' },
+                { url: 'https://ansv.gov.co/contenidos/escuela/fase1/on/ANSV_PT018_PDF03/ANSV_PT018_PDF03.pdf', text: 'Estudio ONSV (PDF)' }
+              ],
+              icon: 'map' 
+          },
+          { 
+              id: 'w3', 
+              time: '10:25 - 10:40', 
+              duration: '15 min', 
+              title: 'Identificación de barreras invisibles', 
+              moderator: 'Facilitadora REDIPI', 
+              description: 'Reflexiona sobre tus trayectos diarios (trabajo, estudio, cuidado).\n\n¿Qué te genera inseguridad o dificultad?\n(Lugares oscuros, cruces peligrosos, transporte inestable, acoso, falta de infraestructura...)\n\nParticipa en la nube de palabras y consulta la evidencia técnica.', 
+              links: [
+                  { url: 'https://www.menti.com/alxxkk14zmxx?source=qr-widget', text: 'Participar en Mentimeter' },
+                  { url: 'https://ansv.gov.co/sites/default/files/2025-02/SINIESTRALIDAD%20VIAL%20EN%20MUJERES_ENFOQUE%20DE%20GENERO_0_0.pdf', text: 'Estudio siniestralidad (PDF)' },
+                  { url: 'https://ansv.gov.co/contenidos/escuela/fase1/on/ANSV_PT018_INF01ANSV_PT018_INF02/ANSV_PT018_INF01_INF02.pdf', text: 'Ver infografía' }
+              ],
+              icon: 'alert' 
+          },
+          { 
+              id: 'w4', 
+              time: '10:40 - 10:55', 
+              duration: '15 min', 
+              title: 'Testimonios: Rutas que inspiran', 
+              moderator: 'Lideresas invitadas', 
+              description: 'Narrativa testimonial y escucha activa.\n\nComparte tus reacciones o palabras clave durante los testimonios usando el mismo Mentimeter de la actividad anterior.', 
+              links: [
+                  { url: 'https://www.menti.com/alxxkk14zmxx?source=qr-widget', text: 'Reaccionar en Mentimeter' }
+              ],
+              icon: 'message' 
+          },
+          { 
+              id: 'w5', 
+              time: '10:55 - 11:15', 
+              duration: '20 min', 
+              title: 'Co-creación: Territorio que cuida', 
+              moderator: 'Facilitadora + Grupos', 
+              description: 'Identifica qué debe cambiar en tus rutas para una movilidad segura y justa.\n\nINSTRUCCIONES (Mapa colaborativo):\n1. Haz clic en el botón "+" (esquina inferior derecha).\n2. Escribe tu ruta (municipio).\n3. Elige categoría (iluminación, pasos, etc.).\n4. Escribe tu propuesta breve.', 
+              links: [
+                  { url: 'https://padlet.com/neoseguridadvial/qu-debe-cambiar-en-mi-ruta-para-que-la-movilidad-sea-segura--nzdcc475t70ikdd6', text: 'Participar en el mapa colaborativo' },
+                  { url: 'https://padlet.com/neoseguridadvial/qu-debe-cambiar-en-mi-ruta-para-que-la-movilidad-sea-segura--nzdcc475t70ikdd6/slideshow', text: '📊 Ver resultados (slideshow)' }
+              ],
+              icon: 'users' 
+          },
+          { 
+              id: 'w6', 
+              time: '11:15 - 11:20', 
+              duration: '5 min', 
+              title: 'Cierre sonoro: Voces que dejan eco', 
+              moderator: 'Facilitadora REDIPI', 
+              description: '¡Tu voz cuenta! Únete al grupo temporal de WhatsApp.\n\n1. Envía un audio de máx. 10 segundos.\n2. Di 3 palabras sobre la movilidad que sueñas o lo que te mueve (ej: libre, segura, visible).\n\nCrearemos una pieza sonora colectiva para la plenaria.', 
+              links: [
+                  { url: 'https://chat.whatsapp.com/C2tiSPI3Kty0lmJIt1CBsf', text: 'Unirme al grupo de WhatsApp' }
+              ],
+              icon: 'mic' 
+          },
+          { id: 'w7', time: '11:20 - 11:30', duration: '10 min', title: 'Cierre y retorno a plenaria', moderator: 'Facilitadora REDIPI', description: 'Transición al auditorio principal.', icon: 'rotate' }
+        ];
+
+        const workshopAgendaData = [
+            { id: 't1', time: '11:30 - 11:35', duration: '5 min', title: 'Bienvenida y contextualización', moderator: 'Facilitador/a', description: 'Apertura, propósito, objetivos y confirmación técnica en Meet/YouTube.', icon: 'users' },
+            { 
+                id: 't2', 
+                time: '11:35 - 11:50', 
+                duration: '15 min', 
+                title: 'Dinámica: "Conectemos nuestros liderazgos"', 
+                moderator: 'Facilitador/a', 
+                description: '¡Momento de conectar!\nReúnete con 2 o 3 personas. Dialoguen y CONCERTEN UNA IDEA.\n\n📝 REGISTRO DOBLE:\n1. Escribe la idea aquí (en "Notas").\n2. Publícala en el Muro Colaborativo.', 
+                links: [
+                    { url: 'https://padlet.com/neoseguridadvial/as-se-mueve-nuestra-red-j1xv4e7ln7cfby84', text: 'Ir al muro digital (participar)' }
+                ],
+                icon: 'users' 
+            },
+            { 
+                id: 't3', 
+                time: '11:50 - 12:10', 
+                duration: '20 min', 
+                title: 'Construcción: "Compromisos de Red"', 
+                moderator: 'Facilitador/a', 
+                description: 'Construcción colectiva por estaciones. Elige tu temática y participa:', 
+                links: [
+                    { url: 'https://padlet.com/neoseguridadvial/qu-acciones-m-nimas-debemos-sostener-como-rnllsv-gx4aypof5ulkkmf5', text: 'Participar Estación 1: Acciones mínimas' },
+                    { url: 'https://padlet.com/neoseguridadvial/c-mo-nos-apoyamos-entre-territorios-6l1xoq7javjmd0pb', text: 'Participar Estación 2: Apoyo territorios' },
+                    { url: 'https://padlet.com/neoseguridadvial/qu-canales-y-ritmos-proponemos-para-mantener-la-articulaci-n-6bcgm5m9i7gzicw', text: 'Participar Estación 3: Canales y ritmos' }
+                ],
+                icon: 'puzzle' 
+            },
+            { 
+                id: 't4', 
+                time: '12:10 - 12:20', 
+                duration: '10 min', 
+                title: 'Cierre e integración', 
+                moderator: 'Facilitador/a', 
+                description: 'Síntesis visual, reconocimiento y resultados.', 
+                links: [
+                    { url: 'https://padlet.com/neoseguridadvial/as-se-mueve-nuestra-red-j1xv4e7ln7cfby84/slideshow/section/337255060', text: '📊 Result. Dinámica conectemos' },
+                    { url: 'https://padlet.com/neoseguridadvial/qu-acciones-m-nimas-debemos-sostener-como-rnllsv-gx4aypof5ulkkmf5/slideshow', text: '📊 Result. Estación 1' },
+                    { url: 'https://padlet.com/neoseguridadvial/c-mo-nos-apoyamos-entre-territorios-6l1xoq7javjmd0pb/slideshow', text: '📊 Result. Estación 2' },
+                    { url: 'https://padlet.com/neoseguridadvial/qu-canales-y-ritmos-proponemos-para-mantener-la-articulaci-n-6bcgm5m9i7gzicw/slideshow', text: '📊 Result. Estación 3' }
+                ],
+                icon: 'presentation' 
+            }
+        ];
+
+        // --- HELPER FUNCTIONS ---
+        const parseTime = (timeStr) => {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        };
+
+        const getCurrentEventStatus = (agendaData, currentMinutes) => {
+            let current = null;
+            let next = null;
+            const sortedData = [...agendaData].sort((a, b) => parseTime(a.time.split(' - ')[0]) - parseTime(b.time.split(' - ')[0]));
+
+            for (let i = 0; i < sortedData.length; i++) {
+                const item = sortedData[i];
+                const times = item.time.split(' - ');
+                const start = parseTime(times[0]);
+                const end = parseTime(times[1]);
+
+                if (currentMinutes >= start && currentMinutes < end) {
+                    current = item;
+                    next = sortedData[i + 1] || null;
+                    break; 
+                }
+                if (currentMinutes < start) {
+                    if (!next) next = item;
+                    break;
+                }
+            }
+            return { current, next };
+        };
+
+        // Generar Línea de Tiempo Completa
+        const getFullTimelineEvents = () => {
+            const foro = mainAgendaData.map(i => ({ ...i, type: 'foro', startTime: parseTime(i.time.split(' - ')[0]) }));
+            const womenSummary = {
+                id: 'women_summary',
+                time: '10:00 - 11:30', 
+                title: 'Encuentro de mujeres (agenda paralela)',
+                description: 'Espacio simultáneo en sala alterna.',
+                type: 'mujeres',
+                startTime: parseTime('10:00')
+            };
+            return [...foro, womenSummary].sort((a, b) => {
+                if (a.startTime === b.startTime) {
+                    if (a.type === 'foro') return -1;
+                    if (b.type === 'foro') return 1;
+                }
+                return a.startTime - b.startTime;
+            });
+        };
+
+        // --- COMPONENTS ---
+
+        const TimelineItem = ({ item, isCurrent, align }) => {
+            let colorClasses = 'bg-white border-l-4 border-slate-300 text-slate-800';
+            let badgeClass = 'bg-slate-100 text-slate-600';
+            let alignClass = 'justify-start';
+            let textAlign = 'text-left';
+            let dotClass = 'left-[-29px] bg-slate-300';
+
+            if (item.type === 'foro' || item.id === 'm7') {
+                colorClasses = 'bg-orange-50 border-l-4 border-orange-500 text-orange-900';
+                badgeClass = 'bg-orange-200 text-orange-800';
+                alignClass = 'justify-start'; 
+                textAlign = 'text-left';
+                dotClass = '-left-[29px] bg-orange-500';
+            } else if (item.type === 'mujeres') {
+                colorClasses = 'bg-purple-50 border-r-4 border-purple-500 text-purple-900';
+                badgeClass = 'bg-purple-200 text-purple-800';
+                alignClass = 'justify-end'; 
+                textAlign = 'text-right';
+                dotClass = '-right-[29px] bg-purple-500'; 
+            }
+
+            const activeClass = isCurrent ? 'ring-2 ring-offset-2 ring-blue-400 shadow-lg scale-[1.02]' : 'shadow-sm hover:shadow-md';
+
+            return (
+                <div className={`flex w-full relative z-10 ${alignClass} mb-4`}>
+                    <div className={`w-full md:w-[48%] relative p-4 rounded-lg transition-all duration-300 ${colorClasses} ${activeClass}`}>
+                        <div className={`hidden md:block absolute top-4 h-6 w-6 rounded-full border-4 border-white z-10 ${dotClass}`}></div>
+                        <div className={`flex flex-col ${item.type === 'mujeres' ? 'items-end' : 'items-start'}`}>
+                            <span className={`text-xs font-bold px-2 py-1 rounded mb-1 ${badgeClass}`}>{item.time}</span>
+                            <h4 className={`font-bold text-sm md:text-base leading-tight ${textAlign}`}>{item.title}</h4>
+                            {item.description && <p className={`text-xs mt-1 opacity-80 italic max-w-xs ${textAlign}`}>{item.description}</p>}
+                            {isCurrent && <span className="mt-2 text-[10px] font-bold text-red-600 flex items-center animate-pulse"><span className="w-2 h-2 bg-red-600 rounded-full mr-1"></span> EN CURSO</span>}
+                            {item.link && !item.links && (
+                                <a href={item.link} target="_blank" rel="noopener noreferrer" className="mt-2 text-xs font-bold text-blue-600 hover:underline flex items-center">
+                                    <ExternalLink className="w-3 h-3 mr-1" /> {item.linkText || 'Abrir enlace'}
+                                </a>
+                            )}
+                            {item.links && (
+                                <div className="mt-2 flex flex-col gap-1 z-20 relative w-full">
+                                    {item.links.map((l, i) => (
+                                        <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className={`text-xs font-bold text-blue-600 hover:bg-blue-50 p-1 rounded flex items-center transition-colors ${textAlign === 'text-right' ? 'justify-end' : 'justify-start'}`} onClick={(e) => e.stopPropagation()}>
+                                            <ExternalLink className="w-3 h-3 mr-1 flex-shrink-0" /> {l.text}
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ParallelTimelineRow = ({ currentEventId }) => {
+            const eventM5 = mainAgendaData.find(i => i.id === 'm5');
+            const eventM6 = mainAgendaData.find(i => i.id === 'm6');
+            const womenBlock = {
+                id: 'women_summary',
+                time: '10:00 - 11:30',
+                title: 'Encuentro de mujeres (agenda paralela)',
+                description: 'Espacio simultáneo en sala alterna.',
+                type: 'mujeres'
+            };
+            const isM5Active = currentEventId === 'm5';
+            const isM6Active = currentEventId === 'm6';
+            const isWomenActive = isM5Active || isM6Active;
+
+            return (
+                <div className="relative w-full mb-6">
+                    <div className="flex flex-col md:flex-row w-full relative z-10">
+                        <div className="w-full md:w-[48%] flex flex-col gap-4">
+                            <div className={`relative p-4 rounded-lg bg-orange-50 border-l-4 border-orange-500 text-orange-900 shadow-sm ${isM5Active ? 'ring-2 ring-blue-400 scale-[1.02]' : ''}`}>
+                                <div className="hidden md:block absolute top-4 -right-[29px] h-6 w-6 rounded-full border-4 border-white bg-orange-500 z-10"></div>
+                                <div className="flex flex-col items-start">
+                                    <span className="text-xs font-bold px-2 py-1 rounded mb-1 bg-orange-200 text-orange-800">{eventM5.time}</span>
+                                    <h4 className="font-bold text-sm md:text-base leading-tight text-left">{eventM5.title}</h4>
+                                    {isM5Active && <span className="mt-1 text-[10px] font-bold text-red-600 animate-pulse">🔴 EN CURSO</span>}
+                                </div>
+                            </div>
+                            <div className={`relative p-4 rounded-lg bg-orange-50 border-l-4 border-orange-500 text-orange-900 shadow-sm ${isM6Active ? 'ring-2 ring-blue-400 scale-[1.02]' : ''}`}>
+                                <div className="hidden md:block absolute top-4 -right-[29px] h-6 w-6 rounded-full border-4 border-white bg-orange-500 z-10"></div>
+                                <div className="flex flex-col items-start">
+                                    <span className="text-xs font-bold px-2 py-1 rounded mb-1 bg-orange-200 text-orange-800">{eventM6.time}</span>
+                                    <h4 className="font-bold text-sm md:text-base leading-tight text-left">{eventM6.title}</h4>
+                                    {isM6Active && <span className="mt-1 text-[10px] font-bold text-red-600 animate-pulse">🔴 EN CURSO</span>}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="w-full md:w-[48%] md:ml-auto mt-4 md:mt-0 flex">
+                            <div className={`relative w-full p-4 rounded-lg bg-purple-50 border-r-4 border-purple-500 text-purple-900 shadow-sm flex flex-col justify-center items-end text-right ${isWomenActive ? 'ring-2 ring-blue-400 scale-[1.02]' : ''}`}>
+                                <div className="hidden md:block absolute top-1/2 -left-[29px] transform -translate-y-1/2 h-6 w-6 rounded-full border-4 border-white bg-purple-500 z-10"></div>
+                                <span className="text-xs font-bold px-2 py-1 rounded mb-2 bg-purple-200 text-purple-800">{womenBlock.time}</span>
+                                <h4 className="font-bold text-base md:text-lg leading-tight">{womenBlock.title}</h4>
+                                <p className="text-xs mt-2 opacity-80 italic">{womenBlock.description}</p>
+                                {isWomenActive && <span className="mt-2 text-[10px] font-bold text-red-600 animate-pulse">🔴 EN CURSO</span>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 1. Botón Volver al Inicio
+        const ScrollToTopButton = () => {
+            const [visible, setVisible] = useState(false);
+            useEffect(() => {
+                const toggleVisibility = () => window.pageYOffset > 300 ? setVisible(true) : setVisible(false);
+                window.addEventListener("scroll", toggleVisibility);
+                return () => window.removeEventListener("scroll", toggleVisibility);
+            }, []);
+            const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+            return (
+                <button onClick={scrollToTop} className={`fixed bottom-8 left-8 z-50 bg-white text-orange-600 p-4 rounded-full shadow-2xl border border-orange-200 transition-all duration-300 transform hover:scale-110 hover:bg-orange-50 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`} title="Volver al inicio">
+                    <ArrowUp className="w-6 h-6" />
+                </button>
+            );
+        };
+
+        // 2. Ficha del Evento
+        const EventSummaryCard = () => {
+            return (
+                <div className="max-w-6xl mx-auto px-4 relative z-20 -mt-12">
+                    <div className="bg-white rounded-2xl shadow-xl p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border border-slate-100">
+                        <div className="flex items-start space-x-3"><div className="bg-orange-100 p-3 rounded-xl text-orange-600"><Calendar className="w-6 h-6" /></div><div><h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Fecha</h4><p className="font-bold text-slate-800">24 Nov, 2025</p></div></div>
+                        <div className="flex items-start space-x-3"><div className="bg-blue-100 p-3 rounded-xl text-blue-600"><MapPin className="w-6 h-6" /></div><div><h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Lugar</h4><p className="font-bold text-slate-800 text-sm leading-tight">Auditorio Edificio Elemento, Bogotá</p></div></div>
+                        <div className="flex items-start space-x-3"><div className="bg-green-100 p-3 rounded-xl text-green-600"><Target className="w-6 h-6" /></div><div><h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Propósito</h4><p className="font-bold text-slate-800 text-sm leading-tight line-clamp-2">Reconocimiento y consolidación de la Red</p></div></div>
+                        <div className="flex items-start space-x-3">
+                            <div className="bg-red-100 p-3 rounded-xl text-red-600"><MonitorPlay className="w-6 h-6" /></div>
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Transmisión</h4>
+                                <a href="https://www.youtube.com/watch?v=aE9zpofpAtA" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 text-sm hover:underline block">YouTube ANSV</a>
+                                <p className="font-bold text-slate-800 text-sm">Google Meet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. Live Ticker
+        const LiveTicker = ({ currentStatus }) => {
+            const [time, setTime] = useState(new Date());
+            useEffect(() => {
+                const timer = setInterval(() => setTime(new Date()), 1000);
+                return () => clearInterval(timer);
+            }, []);
+            const formatTime = (date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return (
+                <div className="sticky top-0 z-40 bg-slate-900 text-white shadow-xl border-b-4 border-orange-500 transition-all duration-300">
+                    <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center bg-slate-800 px-4 py-2 rounded-lg shadow-inner border border-slate-700"><Clock className="w-5 h-5 text-orange-400 mr-2 animate-pulse" /><span className="text-xl font-mono font-bold tracking-wider">{formatTime(time)}</span></div>
+                        <div className="flex-1 w-full sm:w-auto text-center sm:text-left flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
+                            {currentStatus.current ? (
+                                <div className="flex items-center text-orange-100 animate-fade-in-up"><span className="flex h-3 w-3 relative mr-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span><span className="text-xs uppercase font-bold text-red-400 mr-2">En curso:</span><span className="font-semibold truncate max-w-[200px] md:max-w-xs" title={currentStatus.current.title}>{currentStatus.current.title}</span></div>
+                            ) : (<div className="text-slate-400 text-sm italic">No hay actividad en curso ahora</div>)}
+                            {currentStatus.next && (
+                                <div className="flex items-center text-slate-300 text-sm hidden md:flex animate-fade-in-up delay-100"><span className="text-orange-400 font-bold mr-2 text-xs uppercase">Siguiente:</span><span className="truncate max-w-[150px] opacity-80" title={currentStatus.next.title}>{currentStatus.next.time.split(' - ')[0]} - {currentStatus.next.title}</span></div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StatusBadge = ({ status, onClick, type }) => {
+          const isActive = status === type;
+          let baseClasses = "p-2 rounded-full transition-all duration-300 flex items-center justify-center transform hover:scale-110 z-50 relative";
+          let activeClasses = "";
+          let IconComp = null;
+          if (type === 'interested') { activeClasses = isActive ? "bg-yellow-100 text-yellow-500 shadow-inner" : "text-slate-300 hover:text-yellow-400"; IconComp = Star; } 
+          else if (type === 'completed') { activeClasses = isActive ? "bg-green-100 text-green-600 shadow-inner" : "text-slate-300 hover:text-green-500"; IconComp = CheckCircle; }
+          return (<button onClick={(e) => { e.stopPropagation(); onClick(type); }} className={`${baseClasses} ${activeClasses}`} title={type === 'interested' ? "Me interesa" : "Ya lo vi / Asistí"}><IconComp className={`w-5 h-5 ${isActive ? "fill-current" : ""}`} /></button>);
+        };
+
+        // CARD COMPONENT
+        const FlipCard = ({ item, note, onNoteChange, isFlipped, onFlip, status, onStatusChange, photos = [], onPhotoAdd, onPhotoRemove, audios = [], onAudioAdd, onAudioRemove, colorTheme = "orange", isCurrent }) => {
+          const isCompleted = status === 'completed';
+          const fileInputRef = useRef(null);
+          const [isRecording, setIsRecording] = useState(false);
+          const mediaRecorderRef = useRef(null);
+          const audioChunksRef = useRef([]);
+          const [isDictating, setIsDictating] = useState(false);
+          const recognitionRef = useRef(null);
+
+          const handleCameraClick = (e) => { 
+              e.stopPropagation(); 
+              fileInputRef.current.click(); 
+          };
+          const handleFileChange = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onloadend = () => onPhotoAdd(item.id, reader.result); reader.readAsDataURL(file); e.target.value = ''; } };
+
+          const startRecording = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorderRef.current = new MediaRecorder(stream);
+                audioChunksRef.current = [];
+                mediaRecorderRef.current.ondataavailable = (event) => { if (event.data.size > 0) audioChunksRef.current.push(event.data); };
+                mediaRecorderRef.current.onstop = () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => { onAudioAdd(item.id, reader.result); };
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                mediaRecorderRef.current.start();
+                setIsRecording(true);
+            } catch (err) { alert("No se pudo acceder al micrófono."); }
+          };
+          const stopRecording = () => { if (mediaRecorderRef.current && isRecording) { mediaRecorderRef.current.stop(); setIsRecording(false); } };
+          const toggleRecording = (e) => { e.stopPropagation(); if (isRecording) stopRecording(); else startRecording(); };
+
+          const toggleDictation = (e) => {
+              e.stopPropagation();
+              if (!('webkitSpeechRecognition' in window)) { alert("Navegador no soporta dictado."); return; }
+              if (isDictating) { if (recognitionRef.current) recognitionRef.current.stop(); setIsDictating(false); } 
+              else {
+                  const recognition = new window.webkitSpeechRecognition();
+                  recognition.lang = 'es-ES';
+                  recognition.interimResults = false;
+                  recognitionRef.current = recognition;
+                  recognition.onstart = () => setIsDictating(true);
+                  recognition.onresult = (event) => { const newText = (note || "") + " " + event.results[0][0].transcript; onNoteChange(item.id, newText); };
+                  recognition.onend = () => setIsDictating(false);
+                  
+                  recognition.onerror = (event) => {
+                      if (event.error === 'no-speech') {
+                          setIsDictating(false);
+                          return;
+                      }
+                      console.error("Error en dictado:", event.error);
+                      setIsDictating(false);
+                  };
+
+                  recognition.start();
+              }
+          };
+
+          const themeClasses = colorTheme === 'purple' ? { bg: 'bg-purple-50', border: 'border-purple-100', text: 'text-purple-700', btn: 'bg-purple-600 hover:bg-purple-700', badge: 'bg-purple-100 text-purple-800' } : colorTheme === 'teal' ? { bg: 'bg-teal-50', border: 'border-teal-100', text: 'text-teal-700', btn: 'bg-teal-600 hover:bg-teal-700', badge: 'bg-teal-100 text-teal-800' } : { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-700', btn: 'bg-orange-500 hover:bg-orange-600', badge: 'bg-orange-100 text-orange-800' };
+          const activeCardClass = isCurrent ? 'ring-4 ring-orange-400 ring-opacity-50 animate-glow border-orange-500 shadow-2xl scale-[1.02]' : '';
+
+          return (
+            <div className={`relative w-full h-[30rem] perspective-1000 group transition-transform duration-500 ${isCurrent ? 'z-10' : 'z-0'}`}>
+              <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+                <div className={`absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-lg border-2 p-6 flex flex-col justify-between ${isCompleted ? 'border-slate-200 opacity-80' : themeClasses.border} ${activeCardClass}`}>
+                  {isCurrent && (<div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md flex items-center animate-bounce z-20"><span className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></span>EN CURSO</div>)}
+                  <div>
+                    <div className="flex justify-between items-start mb-4"><div className={`px-3 py-1 rounded-full text-xs font-bold ${isCompleted ? 'bg-slate-100 text-slate-500' : themeClasses.badge}`}>{item.duration}</div><div className="flex space-x-1"><StatusBadge status={status} type="interested" onClick={(type) => onStatusChange(item.id, status === type ? null : type)} /><StatusBadge status={status} type="completed" onClick={(type) => onStatusChange(item.id, status === type ? null : type)} /></div></div>
+                    <h3 className={`text-lg font-bold mb-2 leading-tight ${isCompleted ? 'text-slate-400 line-through decoration-2' : 'text-slate-800'}`}>{item.title}</h3>
+                    <div className={`flex items-center text-sm mb-2 ${isCompleted ? 'text-slate-300' : 'text-slate-500'}`}><Clock className="w-4 h-4 mr-2" />{item.time}</div>
+                    <div className={`flex items-center text-sm ${isCompleted ? 'text-slate-300' : 'text-slate-500'}`}><User className="w-4 h-4 mr-2" /><span className="truncate font-medium">{item.moderator}</span></div>
+                    {item.description && (<p className="text-xs text-slate-500 mt-2 mb-1 italic whitespace-pre-line">{item.description}</p>)}
+                    
+                    {/* Render links if available */}
+                    {item.links && (
+                        <div className="mt-2 flex flex-col gap-1 z-20 relative max-h-40 overflow-y-auto no-scrollbar">
+                            {item.links.map((l, i) => (
+                                <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:bg-blue-50 p-1 rounded flex items-center transition-colors" onClick={(e) => e.stopPropagation()}>
+                                    <ExternalLink className="w-3 h-3 mr-1 flex-shrink-0" /> {l.text}
+                                </a>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Fallback for single link */}
+                    {item.link && !item.links && (<a href={item.link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:underline flex items-center mt-1 z-20 relative" onClick={(e) => e.stopPropagation()}><ExternalLink className="w-3 h-3 mr-1" /> {item.linkText || 'Ver enlace'}</a>)}
+                  </div>
+                  <div className="mt-4 flex items-center justify-between gap-2">
+                     <div className="flex items-center gap-1 flex-1 overflow-hidden"><div className="flex flex-col">{photos.length > 0 && (<div className="text-xs text-green-600 flex items-center font-medium"><Camera className="w-3 h-3 mr-1" />{photos.length} foto(s)</div>)}{audios.length > 0 && (<div className="text-xs text-blue-600 flex items-center font-medium"><Mic className="w-3 h-3 mr-1" />{audios.length} audio(s)</div>)}{photos.length === 0 && audios.length === 0 && (<div className="text-xs text-slate-400 italic truncate">{isCompleted ? "Finalizada" : status === 'interested' ? "¡Te interesa!" : ""}</div>)}</div></div>
+                     <button onClick={(e) => { e.stopPropagation(); onFlip(); }} className={`py-2 px-4 rounded-xl text-white text-sm font-semibold flex items-center space-x-2 shadow-md transition-colors cursor-pointer z-20 relative ${isCompleted ? 'bg-slate-400' : themeClasses.btn}`}><Pencil className="w-3 h-3" /><span>Notas</span></button>
+                  </div>
+                </div>
+
+                {/* BACK FACE - PROTEGIDO CON STOP PROPAGATION */}
+                <div 
+                    className={`absolute w-full h-full backface-hidden bg-slate-50 rounded-2xl shadow-xl border-2 p-6 rotate-y-180 flex flex-col ${themeClasses.border} ${activeCardClass}`}
+                    onClick={(e) => e.stopPropagation()} 
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className={`font-bold ${themeClasses.text} text-sm`}>Mis notas, fotos y voz</h4>
+                    {/* BOTÓN DE REGRESO CON GLOW */}
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onFlip(); }} 
+                        className="p-2 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-all shadow-md animate-pulse ring-2 ring-orange-300 cursor-pointer z-30"
+                        title="Girar tarjeta"
+                    >
+                        <RotateCcw className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="relative flex-1 mb-2">
+                      <textarea 
+                        className="w-full h-full p-3 bg-white border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-orange-200 focus:outline-none text-slate-700 text-sm placeholder:text-slate-300" 
+                        placeholder="Escribe o dicta aquí tus ideas clave..." 
+                        value={note} 
+                        onChange={(e) => onNoteChange(item.id, e.target.value)} 
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <button 
+                        onClick={toggleDictation} 
+                        className={`absolute bottom-3 right-3 p-2 rounded-full shadow-md transition-all duration-300 z-30 ${isDictating ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`} 
+                        title={isDictating ? "Escuchando..." : "Dictar nota"}
+                      >
+                        {isDictating ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                      </button>
+                      {isDictating && <div className="absolute bottom-3 right-12 flex items-center space-x-1"><div className="dictating-wave"></div><div className="dictating-wave"></div><div className="dictating-wave"></div></div>}
+                  </div>
+
+                  <div className="mt-auto border-t border-slate-200 pt-2 flex flex-col gap-2">
+                      {photos.length > 0 && (<div className="flex gap-2 overflow-x-auto pb-1 h-14 items-center no-scrollbar">{photos.map((photo, idx) => (<div key={idx} className="relative flex-shrink-0 w-14 h-14 group/photo"><img src={photo} alt={`Foto ${idx}`} className="w-full h-full object-cover rounded-lg border border-slate-300 shadow-sm" /><button onClick={(e) => { e.stopPropagation(); onPhotoRemove(item.id, idx); }} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-sm hover:bg-red-600 z-30" title="Borrar"><Trash2 className="w-2 h-2" /></button></div>))}</div>)}
+                      {audios.length > 0 && (<div className="flex flex-col gap-1 max-h-20 overflow-y-auto no-scrollbar">{audios.map((audioUrl, idx) => (<div key={idx} className="flex items-center bg-slate-100 rounded-lg p-1 pr-2"><audio src={audioUrl} controls className="h-6 w-full mr-2" onClick={(e) => e.stopPropagation()} /><button onClick={(e) => { e.stopPropagation(); onAudioRemove(item.id, idx); }} className="text-red-400 hover:text-red-600 cursor-pointer z-30"><Trash2 className="w-4 h-4" /></button></div>))}</div>)}
+                      
+                      <div className="flex gap-2">
+                          <input type="file" accept="image/*" capture="environment" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+                          <button onClick={handleCameraClick} className="flex-1 flex items-center justify-center space-x-1 text-xs font-bold bg-white border border-slate-300 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer z-30"><Camera className="w-4 h-4" /><span>Foto</span></button>
+                          <button onClick={toggleRecording} className={`flex-1 flex items-center justify-center space-x-1 text-xs font-bold px-2 py-2 rounded-lg transition-colors cursor-pointer z-30 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'}`}>{isRecording ? <Square className="w-4 h-4 fill-current" /> : <Volume2 className="w-4 h-4" />}<span>{isRecording ? 'Detener' : 'Grabar audio'}</span></button>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // --- MAIN APP ---
+        function App() {
+          const [activeTab, setActiveTab] = useState('foro');
+          const [notes, setNotes] = useState({});
+          const [activityStatus, setActivityStatus] = useState({}); 
+          const [photos, setPhotos] = useState({}); 
+          const [audios, setAudios] = useState({}); 
+          const [flippedState, setFlippedState] = useState({});
+          const [finalReflection, setFinalReflection] = useState("");
+          const [contacts, setContacts] = useState([]);
+          const [newContact, setNewContact] = useState({ name: '', org: '', info: '' });
+          const [jsPDFInstance, setJsPDFInstance] = useState(null);
+          const [timelineEvents, setTimelineEvents] = useState([]);
+          const [currentEventStatus, setCurrentEventStatus] = useState({ current: null, next: null });
+          // Nuevo estado para dictado en reflexión final
+          const [isDictatingReflect, setIsDictatingReflect] = useState(false);
+          const recognitionReflectRef = useRef(null);
+
+          useEffect(() => {
+            const script = document.createElement('script');
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+            script.onload = () => { setJsPDFInstance(window.jspdf); };
+            document.body.appendChild(script);
+            setTimelineEvents(getFullTimelineEvents());
+          }, []);
+
+          useEffect(() => {
+              const timer = setInterval(() => {
+                  const now = new Date();
+                  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                  let data = mainAgendaData;
+                  if(activeTab === 'taller') data = workshopAgendaData;
+                  if(activeTab === 'mujeres') data = womenAgendaData;
+                  setCurrentEventStatus(getCurrentEventStatus(data, currentMinutes));
+              }, 1000);
+              return () => clearInterval(timer);
+          }, [activeTab]);
+
+          const handleFlip = (id) => setFlippedState(prev => ({ ...prev, [id]: !prev[id] }));
+          const handleNoteChange = (id, value) => setNotes(prev => ({ ...prev, [id]: value }));
+          const handlePhotoAdd = (id, base64) => setPhotos(prev => ({ ...prev, [id]: [...(prev[id] || []), base64] }));
+          const handlePhotoRemove = (id, index) => setPhotos(prev => ({ ...prev, [id]: (prev[id] || []).filter((_, idx) => idx !== index) }));
+          const handleAudioAdd = (id, url) => setAudios(prev => ({ ...prev, [id]: [...(prev[id] || []), url] }));
+          const handleAudioRemove = (id, index) => setAudios(prev => ({ ...prev, [id]: (prev[id] || []).filter((_, idx) => idx !== index) }));
+          const handleStatusChange = (id, status) => setActivityStatus(prev => ({ ...prev, [id]: status }));
+          const handleAddContact = () => { if (newContact.name.trim() === '') return; setContacts([...contacts, { ...newContact, id: Date.now() }]); setNewContact({ name: '', org: '', info: '' }); };
+          const handleDeleteContact = (id) => setContacts(contacts.filter(c => c.id !== id));
+
+          // DICTADO PARA REFLEXIÓN FINAL
+          const toggleDictationReflect = () => {
+              if (!('webkitSpeechRecognition' in window)) { alert("Navegador no soporta dictado."); return; }
+              
+              if (isDictatingReflect) { 
+                  if (recognitionReflectRef.current) recognitionReflectRef.current.stop(); 
+                  setIsDictatingReflect(false); 
+              } else {
+                  const recognition = new window.webkitSpeechRecognition();
+                  recognition.lang = 'es-ES';
+                  recognition.interimResults = false;
+                  recognitionReflectRef.current = recognition;
+                  
+                  recognition.onstart = () => setIsDictatingReflect(true);
+                  recognition.onresult = (event) => { 
+                      const newText = (finalReflection || "") + " " + event.results[0][0].transcript; 
+                      setFinalReflection(newText); 
+                  };
+                  
+                  recognition.onerror = (event) => {
+                      if(event.error !== 'no-speech') console.error(event.error);
+                      setIsDictatingReflect(false);
+                  };
+                  recognition.onend = () => setIsDictatingReflect(false);
+                  
+                  recognition.start();
+              }
+          };
+
+          // DOWNLOADS
+          const downloadPDF = () => {
+            if (!jsPDFInstance) { alert("Cargando generador PDF..."); return; }
+            const { jsPDF } = jsPDFInstance;
+            const doc = new jsPDF();
+            const colors = { orange: [249, 115, 22], purple: [147, 51, 234], blue: [37, 99, 235], teal: [13, 148, 136], dark: [30, 41, 59], gray: [100, 116, 139], lightGray: [248, 250, 252] };
+
+            doc.setFillColor(...colors.orange);
+            doc.rect(0, 0, 210, 40, 'F'); 
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("Memorias del evento", 15, 20);
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text("1er Foro nacional de líderes y lideresas por la seguridad vial", 15, 30);
+
+            let y = 55;
+            const checkPageBreak = (heightNeeded) => { if (y + heightNeeded > 270) { doc.addPage(); y = 20; return true; } return false; };
+
+            const writeSection = (data, sectionTitle, themeColor) => {
+                checkPageBreak(30);
+                doc.setFillColor(...themeColor);
+                doc.rect(15, y, 180, 10, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text(sectionTitle.toUpperCase(), 20, y + 7);
+                y += 20;
+
+                data.forEach(item => {
+                    const note = notes[item.id];
+                    const status = activityStatus[item.id];
+                    const itemPhotos = photos[item.id] || [];
+                    const itemAudios = audios[item.id] || [];
+                    
+                    if ((note && note.trim().length > 0) || status || itemPhotos.length > 0 || itemAudios.length > 0) {
+                        let contentHeight = 25; let noteHeight = 0; let photoHeight = 0; let audioHeight = 0;
+                        let splitNotes = [];
+                        if (note) { splitNotes = doc.splitTextToSize(note, 165); noteHeight = (splitNotes.length * 5) + 15; contentHeight += noteHeight; }
+                        if (itemPhotos.length > 0) { photoHeight = (Math.ceil(itemPhotos.length / 2) * 60) + 5; contentHeight += photoHeight; }
+                        if (itemAudios.length > 0) { audioHeight = 10; contentHeight += audioHeight; }
+
+                        checkPageBreak(contentHeight);
+                        doc.setDrawColor(...themeColor); doc.setLineWidth(0.5); doc.line(15, y, 15, y + contentHeight); doc.setFillColor(...themeColor); doc.circle(15, y, 2, 'F'); 
+                        doc.setTextColor(...colors.gray); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text(item.time, 22, y + 1);
+                        
+                        y += 6;
+                        doc.setTextColor(...colors.dark); doc.setFontSize(12); doc.setFont("helvetica", "bold");
+                        const splitTitle = doc.splitTextToSize(item.title, 165); doc.text(splitTitle, 22, y); y += (splitTitle.length * 6) + 2;
+                        
+                        if (splitNotes.length > 0) { doc.setFillColor(...colors.lightGray); doc.rect(22, y, 170, noteHeight - 5, 'F'); doc.setTextColor(...colors.dark); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text(splitNotes, 25, y + 6); y += noteHeight; }
+                        if (itemAudios.length > 0) { doc.setTextColor(...colors.blue); doc.setFontSize(10); doc.setFont("helvetica", "italic"); doc.text(`🔊 ${itemAudios.length} nota(s) de voz adjunta(s)`, 22, y + 2); y += audioHeight; }
+                        if (itemPhotos.length > 0) { itemPhotos.forEach((photo, idx) => { try { doc.addImage(photo, 'JPEG', 22 + ((idx % 2) * 88), y + (Math.floor(idx / 2) * 60), 80, 50); } catch (e) {} }); y += photoHeight; }
+                        y += 8;
+                    }
+                });
+                y += 10;
+            };
+
+            writeSection(mainAgendaData, "Agenda foro nacional", colors.orange);
+            writeSection(womenAgendaData, "Encuentro de mujeres", colors.purple);
+            writeSection(workshopAgendaData, "Taller de fortalecimiento", colors.teal);
+
+            if (contacts.length > 0) {
+                checkPageBreak(40); doc.setFillColor(...colors.blue); doc.rect(15, y, 180, 10, 'F'); doc.setTextColor(255, 255, 255); doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text("RED DE CONTACTOS", 20, y + 7); y += 20;
+                contacts.forEach(c => { checkPageBreak(25); doc.setDrawColor(...colors.blue); doc.rect(15, y, 180, 20); doc.rect(15, y, 5, 20, 'F'); doc.setTextColor(...colors.dark); doc.setFontSize(11); doc.text(c.name, 25, y + 7); doc.setTextColor(...colors.gray); doc.setFontSize(10); doc.text(`${c.org} | ${c.info}`, 25, y + 14); y += 25; });
+            }
+            
+            if (finalReflection) { checkPageBreak(50); doc.setDrawColor(...colors.orange); doc.rect(15, y, 180, 40); doc.setTextColor(...colors.orange); doc.setFontSize(14); doc.text("¿Qué me queda del evento?", 20, y + 10); doc.setTextColor(...colors.dark); doc.setFontSize(11); doc.setFont("helvetica", "italic"); doc.text(doc.splitTextToSize(finalReflection, 170), 20, y + 20); }
+            
+            doc.save("Memorias_Foro.pdf");
+          };
+
+          const downloadHTML = () => {
+              let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Memorias</title><script src="https://cdn.tailwindcss.com"></`+`script></head><body class="bg-slate-50 p-6"><div class="max-w-4xl mx-auto space-y-8"><h1 class="text-3xl font-bold text-orange-600 border-b pb-4">Memorias del evento</h1>`;
+              
+              const render = (data, title, color) => {
+                  let section = "";
+                  data.forEach(item => {
+                      const n = notes[item.id], p = photos[item.id] || [], a = audios[item.id] || [];
+                      if (n || p.length || a.length) {
+                          section += `<div class="bg-white p-4 rounded shadow border-l-4 border-${color}-500 mb-4"><h3 class="font-bold">${item.title} <span class="text-xs text-gray-500">(${item.time})</span></h3>`;
+                          if(n) section += `<p class="italic bg-gray-50 p-2 my-2 text-gray-700">"${n}"</p>`;
+                          if(a.length) section += `<div>${a.map(u => `<audio controls src="${u}" class="w-full my-1"></audio>`).join('')}</div>`;
+                          if(p.length) section += `<div class="flex gap-2 overflow-auto mt-2">${p.map(u => `<img src="${u}" class="h-24 rounded shadow"/>`).join('')}</div>`;
+                          section += `</div>`;
+                      }
+                  });
+                  if(section) htmlContent += `<section><h2 class="text-xl font-bold text-${color}-600 mb-2">${title}</h2>${section}</section>`;
+              };
+              
+              render(mainAgendaData, "Foro nacional", "orange");
+              render(womenAgendaData, "Encuentro de mujeres", "purple");
+              render(workshopAgendaData, "Taller", "teal");
+              
+              if(contacts.length) htmlContent += `<section><h2 class="text-xl font-bold text-blue-600 mb-2">Contactos</h2><div class="grid gap-4 grid-cols-2">${contacts.map(c => `<div class="bg-white p-3 rounded border shadow"><div class="font-bold">${c.name}</div><div class="text-sm">${c.org}</div><div class="text-sm text-blue-500">${c.info}</div></div>`).join('')}</div></section>`;
+              if(finalReflection) htmlContent += `<section class="bg-orange-50 p-4 rounded border"><h2 class="font-bold text-orange-800">Reflexión final</h2><p class="italic">"${finalReflection}"</p></section>`;
+              
+              htmlContent += `</div></body></html>`;
+              const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([htmlContent], {type:'text/html'})); a.download = 'Memorias_Foro.html'; a.click();
+          };
+
+          return (
+            <div className="min-h-screen bg-slate-100 font-sans selection:bg-orange-200 selection:text-orange-900 pb-24">
+              <LiveTicker currentStatus={currentEventStatus} />
+              <div className="bg-white py-4 px-6 flex justify-center shadow-sm relative z-30"><img src="https://imgur.com/jrW2403.png" alt="Logo ANSV" className="h-16 md:h-20 object-contain" onError={(e) => e.target.style.display = 'none'} /></div>
+              <header className="bg-gradient-to-br from-orange-500 to-orange-600 text-white pt-8 pb-24 px-4 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-400 opacity-20 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+                <div className="max-w-4xl mx-auto text-center relative z-10"><h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2 drop-shadow-sm">1er Foro Nacional</h1><p className="text-orange-100 text-lg md:text-xl font-light">Líderes y lideresas por la seguridad vial</p></div>
+              </header>
+              
+              <EventSummaryCard />
+
+              {/* INSTRUCTIONS SECTION */}
+              <div className="max-w-4xl mx-auto px-4 relative z-20 mb-8 mt-16">
+                  <div className="bg-white rounded-2xl shadow-xl border-l-8 border-orange-400 p-6 flex flex-col md:flex-row items-center gap-6">
+                      <div className="hidden md:block bg-orange-100 p-4 rounded-full text-orange-600 flex-shrink-0"><Info className="w-10 h-10" /></div>
+                      <div className="flex-1 w-full">
+                          <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center">Agenda y toma de memorias</h3>
+                          <div className="text-slate-600 text-sm space-y-2 mb-4">
+                              <p><strong>Lo que puedes hacer:</strong> Marcar actividades de interés, tomar notas, grabar audio y agregar múltiples fotos por sesión.</p>
+                              <p className="flex items-start text-orange-700 font-medium bg-orange-50 p-3 rounded-lg text-xs md:text-sm">
+                                  <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                                  <span><strong>¡Importante!</strong> La información se guarda temporalmente en este navegador. Si cierras la pestaña o actualizas, <strong>perderás tus notas</strong>. Por favor, descarga tu PDF antes de salir.</span>
+                              </p>
+                          </div>
+                      </div>
+                      
+                      {/* BOTONES DE DESCARGA */}
+                      <div className="flex flex-col gap-3 w-full md:w-auto min-w-[200px]">
+                          <button onClick={downloadPDF} className="flex items-center justify-center bg-slate-900 text-white px-5 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg transform hover:-translate-y-1 active:translate-y-0 w-full group"><Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />PDF (sin notas de voz)</button>
+                          <button onClick={downloadHTML} className="flex items-center justify-center bg-purple-600 text-white px-5 py-3 rounded-xl font-bold text-sm hover:bg-purple-700 transition-all shadow-lg transform hover:-translate-y-1 active:translate-y-0 w-full group"><FileCode className="w-4 h-4 mr-2" />HTML (incluye notas de voz)</button>
+                      </div>
+                  </div>
+              </div>
+
+              {/* MAIN CONTENT */}
+              <main className="max-w-6xl mx-auto px-4 relative z-20 pb-24">
+                <div className="flex justify-center mb-8"><div className="bg-white p-1.5 rounded-2xl shadow-xl flex flex-wrap gap-2 w-full max-w-4xl justify-center">
+                    <button onClick={() => setActiveTab('agenda')} className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all duration-300 flex items-center justify-center ${activeTab === 'agenda' ? 'bg-blue-600 text-white shadow-md transform scale-105' : 'text-slate-500 hover:bg-slate-50'}`}><Layout className="w-5 h-5 mr-2" />Agenda general</button>
+                    <button onClick={() => setActiveTab('foro')} className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all duration-300 flex items-center justify-center ${activeTab === 'foro' ? 'bg-orange-500 text-white shadow-md transform scale-105' : 'text-slate-500 hover:bg-slate-50'}`}><Users className="w-5 h-5 mr-2" />Foro nacional</button>
+                    <button onClick={() => setActiveTab('mujeres')} className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all duration-300 flex items-center justify-center ${activeTab === 'mujeres' ? 'bg-purple-600 text-white shadow-md transform scale-105' : 'text-slate-500 hover:bg-slate-50'}`}><Award className="w-5 h-5 mr-2" />Enc. mujeres</button>
+                    <button onClick={() => setActiveTab('taller')} className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all duration-300 flex items-center justify-center ${activeTab === 'taller' ? 'bg-teal-600 text-white shadow-md transform scale-105' : 'text-slate-500 hover:bg-slate-50'}`}><ClipboardList className="w-5 h-5 mr-2" />Taller</button>
+                    <button onClick={() => setActiveTab('contactos')} className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all duration-300 flex items-center justify-center ${activeTab === 'contactos' ? 'bg-blue-600 text-white shadow-md transform scale-105' : 'text-slate-500 hover:bg-slate-50'}`}><Briefcase className="w-5 h-5 mr-2" />Contactos</button>
+                </div></div>
+
+                <div className="transition-opacity duration-300 min-h-[600px]">
+                   {/* AGENDA GENERAL VIEW */}
+                   {activeTab === 'agenda' && (
+                      <div className="animate-fade-in-up max-w-3xl mx-auto">
+                          <div className="relative border-l-4 border-slate-200 ml-6 space-y-6 pl-6 py-2">
+                              {mainAgendaData.filter(i => parseTime(i.time.split(' - ')[0]) < parseTime('10:00')).map((item) => (<div key={item.id} className="relative"><div className="absolute -left-[33px] top-4 h-5 w-5 rounded-full border-4 border-white bg-orange-500"></div><TimelineItem item={{...item, type: 'foro'}} isCurrent={currentEventStatus.current?.id === item.id} align="left" /></div>))}
+                              <ParallelTimelineRow currentEventId={currentEventStatus.current?.id} />
+                              {mainAgendaData.filter(i => parseTime(i.time.split(' - ')[0]) >= parseTime('11:30')).map((item) => (<div key={item.id} className="relative"><div className="absolute -left-[33px] top-4 h-5 w-5 rounded-full border-4 border-white bg-orange-500"></div><TimelineItem item={{...item, type: 'foro'}} isCurrent={currentEventStatus.current?.id === item.id} align="left" /></div>))}
+                          </div>
+                      </div>
+                   )}
+
+                   {/* VISTAS ESPECIFICAS */}
+                   {activeTab === 'foro' && (
+                      <div className="animate-fade-in-up">
+                          <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded mb-6 text-orange-800 text-sm flex items-start"><Info className="w-5 h-5 mr-2 flex-shrink-0"/> Aquí registrarás tus notas o memorias del Foro. Podrás escribir, dictar, tomar fotos o grabar audios.</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                              {mainAgendaData.map((item) => <FlipCard key={item.id} item={item} note={notes[item.id] || ''} onNoteChange={handleNoteChange} status={activityStatus[item.id]} onStatusChange={handleStatusChange} isFlipped={!!flippedState[item.id]} onFlip={() => handleFlip(item.id)} photos={photos[item.id] || []} onPhotoAdd={handlePhotoAdd} onPhotoRemove={handlePhotoRemove} audios={audios[item.id] || []} onAudioAdd={handleAudioAdd} onAudioRemove={handleAudioRemove} colorTheme="orange" isCurrent={currentEventStatus.current?.id === item.id} />)}
+                          </div>
+                      </div>
+                   )}
+                   
+                   {activeTab === 'mujeres' && (
+                      <div className="animate-fade-in-up">
+                          <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded mb-6 text-purple-800 text-sm flex items-start"><Info className="w-5 h-5 mr-2 flex-shrink-0"/> Aquí registrarás tus notas o memorias del Encuentro. Podrás escribir, dictar, tomar fotos o grabar audios.</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                              {womenAgendaData.map((item) => <FlipCard key={item.id} item={item} note={notes[item.id] || ''} onNoteChange={handleNoteChange} status={activityStatus[item.id]} onStatusChange={handleStatusChange} isFlipped={!!flippedState[item.id]} onFlip={() => handleFlip(item.id)} photos={photos[item.id] || []} onPhotoAdd={handlePhotoAdd} onPhotoRemove={handlePhotoRemove} audios={audios[item.id] || []} onAudioAdd={handleAudioAdd} onAudioRemove={handleAudioAdd} colorTheme="purple" isCurrent={currentEventStatus.current?.id === item.id} />)}
+                          </div>
+                      </div>
+                   )}
+
+                   {activeTab === 'taller' && (
+                      <div className="animate-fade-in-up">
+                          <div className="bg-teal-50 border-l-4 border-teal-500 p-4 rounded mb-6 text-teal-800 text-sm flex items-start"><Info className="w-5 h-5 mr-2 flex-shrink-0"/> Aquí registrarás tus notas o memorias del Taller. Podrás escribir, dictar, tomar fotos o grabar audios.</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                              {workshopAgendaData.map((item) => <FlipCard key={item.id} item={item} note={notes[item.id] || ''} onNoteChange={handleNoteChange} status={activityStatus[item.id]} onStatusChange={handleStatusChange} isFlipped={!!flippedState[item.id]} onFlip={() => handleFlip(item.id)} photos={photos[item.id] || []} onPhotoAdd={handlePhotoAdd} onPhotoRemove={handlePhotoRemove} audios={audios[item.id] || []} onAudioAdd={handleAudioAdd} onAudioRemove={handleAudioAdd} colorTheme="teal" isCurrent={currentEventStatus.current?.id === item.id} />)}
+                          </div>
+                      </div>
+                   )}
+
+                   {activeTab === 'contactos' && (
+                       <div className="animate-fade-in-up max-w-4xl mx-auto">
+                            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6 text-blue-800 text-sm flex items-start"><Info className="w-5 h-5 mr-2 flex-shrink-0"/> Aquí podrás registrar los datos de contactos que has hecho durante el evento.</div>
+                            <div className="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 mb-8">
+                                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center"><PlusCircle className="w-6 h-6 text-blue-600 mr-2" />Añadir nuevo contacto</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <input type="text" placeholder="Nombre completo" className="p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none w-full" value={newContact.name} onChange={(e) => setNewContact({...newContact, name: e.target.value})} />
+                                    <input type="text" placeholder="Organización / rol" className="p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none w-full" value={newContact.org} onChange={(e) => setNewContact({...newContact, org: e.target.value})} />
+                                    <input type="text" placeholder="Celular o email" className="p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none w-full" value={newContact.info} onChange={(e) => setNewContact({...newContact, info: e.target.value})} />
+                                </div>
+                                <button onClick={handleAddContact} disabled={!newContact.name} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"><Save className="w-5 h-5 mr-2" />Guardar contacto</button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {contacts.map(contact => (
+                                    <div key={contact.id} className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-blue-500 flex justify-between items-start hover:shadow-lg transition-shadow">
+                                        <div><h4 className="font-bold text-lg text-slate-800">{contact.name}</h4><div className="flex items-center text-slate-500 text-sm mt-1"><Briefcase className="w-3 h-3 mr-2" />{contact.org || 'Sin organización'}</div><div className="flex items-center text-slate-500 text-sm mt-1"><Phone className="w-3 h-3 mr-2" />{contact.info || 'Sin contacto'}</div></div>
+                                        <button onClick={() => handleDeleteContact(contact.id)} className="text-red-300 hover:text-red-500 transition-colors p-2"><Trash2 className="w-5 h-5" /></button>
+                                    </div>
+                                ))}
+                            </div>
+                       </div>
+                   )}
+                </div>
+
+                <div className="mt-16 bg-white rounded-3xl shadow-xl p-8 border border-slate-100 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                    <div className="relative z-10">
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">¿Qué me queda del evento?</h2>
+                        <p className="text-slate-500 mb-6">Tómate un momento para escribir tus aprendizajes más valiosos. Esto se incluirá en tu PDF.</p>
+                        <div className="relative flex-1 mb-2">
+                             <textarea 
+                                value={finalReflection} 
+                                onChange={(e) => setFinalReflection(e.target.value)} 
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none min-h-[150px] text-slate-700 shadow-inner transition-all hover:bg-white" 
+                                placeholder="Mis mayores aprendizajes hoy fueron..." 
+                            />
+                            <button onClick={toggleDictationReflect} className={`absolute bottom-3 right-3 p-2 rounded-full shadow-md transition-all duration-300 z-30 ${isDictatingReflect ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-300'}`} title={isDictatingReflect ? "Escuchando..." : "Dictar reflexión"}>{isDictatingReflect ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</button>
+                            {isDictatingReflect && <div className="absolute bottom-3 right-12 flex items-center space-x-1"><div className="dictating-wave"></div><div className="dictating-wave"></div><div className="dictating-wave"></div></div>}
+                        </div>
+                    </div>
+                    <Heart className="absolute -bottom-6 -right-6 w-40 h-40 text-orange-50 opacity-50 transform rotate-12" />
+                </div>
+              </main>
+
+              <ScrollToTopButton />
+            </div>
+          );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

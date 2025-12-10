@@ -191,7 +191,7 @@
                 </div>
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900">TOP 10 Ponencias</h2>
-                    <p class="text-sm text-gray-500">Los proyectos ganadores y más destacados.</p>
+                    <p class="text-sm text-gray-500">Los proyectos ganadores y más destacados <span class="font-semibold text-orange-600">(Listado en orden alfabético)</span>.</p>
                 </div>
             </div>
             <div id="top10Grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -227,7 +227,7 @@
                     </div>
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Destacados TOP 50</h2>
-                        <p class="text-gray-500 mt-1">Descubre más expertos del ranking oficial.</p>
+                        <p class="text-gray-500 mt-1">Descubre más liderazgos del ranking oficial.</p>
                     </div>
                 </div>
                 <a href="https://redaccionesdeforma-design.github.io/voces/top50.html" target="_blank" class="relative z-10 btn-top50 hover:bg-orange-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition transform hover:scale-105 flex items-center">
@@ -368,7 +368,7 @@ corazones en ruta, ¡voces que dejan eco!
             <!-- Créditos Contractuales + Firma NEO (Tenue) -->
             <div class="max-w-5xl mx-auto border-t border-slate-800 pt-8 px-4 flex flex-col items-center">
                 <p class="text-[10px] uppercase leading-relaxed text-slate-600 font-medium tracking-wide text-justify md:text-center mb-4">
-                    CONTRATO 022 DE 2025 • Fomentar la creación de una red nacional de líderes y lideresas por la seguridad vial, por medio de un programa de formación que ayude e incentive a líderes, lideresas e instituciones de educación superior a promover la seguridad vial con enfoque de género en sus territorios • Contratista: RED DE INSTITUCIONES PARA LA INNOVACIÓN
+                    CONTRATO 022 DE 2025 • Fomentar la creación de una red nacional de líderes y lideresas por la seguridad vial, por medio de un programa de formación que ayude e incentive a líderes, lideresas e instituciones de educación superior a promover la seguridad vial con enfoque de género en sus territorios • Contratista: RED DE INSTITUCIONES PARA LA INNOVACIÓN • Elaboración: NEO
                 </p>
                 
                 <!-- Firma NEO muy tenue al final -->
@@ -410,10 +410,10 @@ corazones en ruta, ¡voces que dejan eco!
             
             uniqueImages.forEach(src => {
                 const imgDiv = document.createElement('div');
-                imgDiv.className = "flex-shrink-0 w-80 h-56 md:w-96 md:h-64 snap-center bg-gray-200 rounded-2xl overflow-hidden shadow-md gallery-item relative cursor-pointer";
+                imgDiv.className = "flex-shrink-0 w-80 h-56 md:w-96 md:h-64 snap-center bg-slate-900 rounded-2xl overflow-hidden shadow-md gallery-item relative cursor-pointer flex items-center justify-center";
                 imgDiv.innerHTML = `
-                    <img src="${src}" alt="Foto del evento" class="w-full h-full object-cover" onclick="window.open('${src}', '_blank')">
-                    <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300"></div>
+                    <img src="${src}" alt="Foto del evento" class="max-w-full max-h-full object-contain" onclick="window.open('${src}', '_blank')">
+                    <div class="absolute inset-0 bg-black/0 hover:bg-white/10 transition-colors duration-300"></div>
                 `;
                 container.appendChild(imgDiv);
             });
@@ -540,11 +540,11 @@ corazones en ruta, ¡voces que dejan eco!
             },
             {
                 category: 'general',
-                name: "Como nos vemos (Encuentro de mujeres)",
-                project: "Resultado Taller - Tablero Interactivo",
+                name: "Encuentro de Mujeres",
+                project: "Presentación y Resultados del Taller",
                 video: null,
-                ppt: "https://www.canva.com/design/DAG5dzJEFFM/PS-5XS3GFKVYWRL8a2hSmA/edit?utm_content=DAG5dzJEFFM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
-                isExternal: true
+                ppt: "https://drive.google.com/open?id=14kVKu4Ett5AwOwFRQiwKWCHZLNcGD4Lk&usp=drive_copy",
+                external: "https://www.canva.com/design/DAG5dzJEFFM/PS-5XS3GFKVYWRL8a2hSmA/edit?utm_content=DAG5dzJEFFM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton"
             },
             {
                 category: 'general',
@@ -629,11 +629,22 @@ corazones en ruta, ¡voces que dejan eco!
                 }
                 
                 buttonsHtml += `
-                    <a href="${item.ppt}" target="_blank" class="flex-1 ${btnColor} text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center transition hover:scale-105 shadow-sm hover:shadow-md">
+                    <a href="${item.ppt}" target="_blank" class="flex-1 ${btnColor} text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center transition hover:scale-105 shadow-sm hover:shadow-md mb-2 sm:mb-0 sm:mr-2">
                         <i class="fas ${icon} mr-2"></i> ${label}
                     </a>
                 `;
-            } else if (!item.video) {
+            } 
+            
+            // External Link (Canva)
+            if (item.external) {
+                buttonsHtml += `
+                    <a href="${item.external}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center transition hover:scale-105 shadow-sm hover:shadow-md">
+                        <i class="fas fa-external-link-alt mr-2"></i> Tablero
+                    </a>
+                `;
+            }
+
+            if (!item.video && !item.ppt && !item.external) {
                  buttonsHtml += `<span class="text-xs text-gray-400 italic text-center w-full py-2">Material próximamente</span>`;
             }
 
@@ -658,7 +669,7 @@ corazones en ruta, ¡voces que dejan eco!
             } else if (item.category === 'top50') {
                 headerIcon = 'fa-medal';
                 headerColor = 'text-blue-500 bg-blue-50';
-                badgeText = 'Destacado';
+                badgeText = 'Liderazgo';
             } else if (item.category === 'general') {
                 headerIcon = 'fa-folder-open';
                 headerColor = 'text-gray-600 bg-gray-100';
@@ -680,7 +691,7 @@ corazones en ruta, ¡voces que dejan eco!
                         <h3 class="text-lg font-bold text-slate-800 mb-2 leading-snug group-hover:text-orange-600 transition">${item.name}</h3>
                         ${projectInfo}
                     </div>
-                    <div class="flex flex-col sm:flex-row pt-4 border-t border-gray-50 mt-2 gap-2">
+                    <div class="flex flex-col sm:flex-row pt-4 border-t border-gray-50 mt-2 gap-2 flex-wrap">
                         ${buttonsHtml}
                     </div>
                 </div>
